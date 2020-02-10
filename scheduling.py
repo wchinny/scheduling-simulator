@@ -11,6 +11,7 @@ DIG_SPEED = 1 # 1 cm^3 / sec
 CHARGING_SPEED = 1 # 1% / sec
 TRAVEL_DRAIN_SPEED = 0.1 # 0.3% / sec
 DIG_DRAIN_SPEED = 0.5 # 0.5% / sec
+DRUM_CAPACITY = 200
 CHARGING_PADS = 4 # 4 rovers can be charged at a time
 
 elapsed = 0
@@ -58,6 +59,7 @@ class Rover :
         self.battery_spent_on_travel = 0
         self.battery_spent_on_digging = 0
         self.time_waited = 0
+        self.drum_volume = 0
     
     def print_status(self) :
         print("ID: {}\nDistance from lander: {}\nBattery: {:.2f}\nAmount dug: {}\nTraveled: {}\n".format(self.id, self.dist_from_charger, self.battery, self.amount_dug, self.traveled))
@@ -94,11 +96,20 @@ class Rover :
 
     def dig(self) :
         print("Rover {} digging...".format(self.id))
+        if self.drum_volume >= DRUM_CAPACITY :
+            self.travel()
+            self.drum_volume = 0
+            self.travel()
+            return
         if self.battery <= (0.5 * (self.dist_from_charger/TRAVEL_SPEED)) :
             self.travel()
             self.charge()
+            self.travel()
+            return
+
         time.sleep(1 * TIME_FACTOR)
         self.amount_dug += (DIG_SPEED)
+        self.drum_volume += (DIG_SPEED)
         self.battery -= 0.5
         self.battery_spent_on_digging += 0.5
 
